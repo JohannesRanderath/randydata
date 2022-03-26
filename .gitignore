@@ -3,3 +3,8 @@
 /dist/
 /*.egg-info
 /.idea/
+.gitignore
+.idea
+/docs/_build
+/docs/Makefile
+/docs/make.bat

@@ -20,10 +20,13 @@ _______________
 The ``randydata.data_layout`` module simplifies some more common formatting tasks to present the results you got from
 analysing the observed data. It uses html to quickly add some structure to your data.
 
-Docs
-_______________
-Sphinx docs are available at `readTheDocs <https://randydata.readthedocs.org>`_
-
 Feedback
 _______________
 I am very happy about any kind of feedback or suggestion by email: `randydata@randerath.eu <mailto:randydata@randerath.eu>`_
+
+..  toctree::
+    :maxdepth: 2
+
+    modules/welcome_data.rst
+    modules/data_layout.rst
+

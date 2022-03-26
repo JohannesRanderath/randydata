@@ -7,7 +7,7 @@
 from IPython.display import HTML, display
 
 
-def make_table(headings: [], data: [[]], columns: bool = False, row_headings: [str] = None):
+def make_table(headings: [], data: [[]], columns: bool = False, row_headings: [] = None):
     """
     Creates table from given headings and data.
     headings should be a list of strings.
