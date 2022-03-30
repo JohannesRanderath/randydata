@@ -24,9 +24,10 @@ Feedback
 _______________
 I am very happy about any kind of feedback or suggestion by email: `randydata@randerath.eu <mailto:randydata@randerath.eu>`_
 
+Module documentation
+_________________________
 ..  toctree::
     :maxdepth: 2
 
     modules/welcome_data.rst
     modules/data_layout.rst
-

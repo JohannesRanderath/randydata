@@ -8,6 +8,9 @@ each patient, the date of birth is observed, you could name your data type *Pati
 rows as Patient objects, so you can access the patient's date of birth by (e.g.) ``Patient.dob``. You could also add a
 method to calculate the patient's age as of today. Let's say you called it ``age()``, so you can access one patient's
 age by calling ``Patient.age()``.
+SQL table names are case-insensitive. In some operating systems and MySQL versions it is possible to create and use
+Tables with upper case letters, but this causes compatibility problems with both other MySQL implementations and other
+Python Packages. This is why case is ignored by welcome_data.
 
 create_datatype_from_sql
 _________________________

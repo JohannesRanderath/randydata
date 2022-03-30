@@ -4,19 +4,18 @@
 """
 
 
-import mysql.connector
 import pandas as pd
 import sqlalchemy
 
 
 def create_datatype_from_attributes(name: str, attributes: [str], bool_values: [str] = [], methods: dict = {}):
     """
-    Creates new datatype with given name, attributes and methods.
-    :param name: Name of new datatype class
-    :param attributes: List of Class property names
-    :param bool_values: Values that should be interpreted as booleans even if given 0 / 1
-    :param methods: Dict of names and functions for Class methods
-    :return: Class of new datatype
+        Creates new datatype with given name, attributes and methods.
+        :param name: Name of new datatype class
+        :param attributes: List of Class property names
+        :param bool_values: Values that should be interpreted as booleans even if given 0 / 1
+        :param methods: Dict of names and functions for Class methods
+        :return: Class of new datatype
     """
     def constructor(self, arguments: dict):
         for attribute in attributes:
@@ -55,18 +54,21 @@ def create_datatype_from_sql(name: str, database: str, table: str, host: str = "
        :param methods: Names and functions for methods the new datatype class should hold
        :return: List containing the rows of the MySQL database as objects of the newly created datatype
    """
-    con = mysql.connector.connect(
-        host=host,
-        username=username,
-        database=database,
-        password=password
-    )
-    db = con.cursor()
+    if password:
+        password = ":" + password
 
-    db.execute("SELECT * FROM {};".format(table))
+    table = table.lower()
+    engine = sqlalchemy.create_engine(f"mysql://{username}{password}@{host}/{database}")
+    metadata = sqlalchemy.MetaData()
+    _table = sqlalchemy.Table(table, metadata, autoload=True, autoload_with=engine)
+    selection = _table.select()
+
+    con = engine.connect()
+    data = con.execute(selection).fetchall()
+
     rows = []
-    column_names = [column_name.lower() for column_name in db.column_names]
-    for row in db:
+    column_names = [column_name.name.lower() for column_name in list(_table.columns)]
+    for row in data:
         rows.append(dict(zip(column_names, row)))
 
     bool_values = []
@@ -87,40 +89,30 @@ def read_excel_to_sql(path: str, database: str, table: str, host: str = "localho
                       password: str = "", override_table: bool = True, append: bool = False) -> bool:
     """
        Data from excel table is read into Mysql database.
-       :param path: Path to excel file to read
+       :param path: Path to Excel file to read
        :param database: Name of mysql database
        :param table: Name of (new) table in database to hold data
        :param host: Hostname of MySQL table
        :param username: MySQL username
        :param password: password to mysql database
        :param override_table: If True, table with given name is deleted if exists and newly created with contents
-                               from excel file
+                               from Excel file
        :param append: If True (AND override_table is FALSE) new data is appended to table if it exists.
                        Dangerous as it might cause involuntary data duplicates and false analysis results
        :return: True if successful, False if not.
    """
-    try:
-        con = mysql.connector.connect(
-            host=host,
-            database=database,
-            username=username,
-            password=password
-        )
-    except mysql.connector.Error as dberr:
-        print("Couldn't connect to database. Does it exist and is accessible? Is the password correct?")
-        print(dberr)
-        return False
 
+    table = table.lower()
     df = pd.read_excel(path)
     if_exists = "fail"
     if override_table:
         if_exists = "replace"
     elif append:
         if_exists = "append"
-    # df.to_sql(name=table, con=con)
-    engine = sqlalchemy.create_engine("mysql://{user}@{host}/{db}".format(user="root", host="localhost", db=database))
+    if password:
+        password = ":" + password
+    engine = sqlalchemy.create_engine(f"mysql://{username}{password}@{host}/{database}")
     df.to_sql(name=table, con=engine, if_exists=if_exists)
-    con.close()
     return True
 
 
@@ -147,13 +139,18 @@ def create_datatype_from_excel(name: str, path: str, database: str, table: str, 
     :param methods: Methods the new datatype class should hold
     :return: List containing the rows of the excel file as objects of the newly created datatype
     """
-    if read_excel_to_sql(path=path, database=database, table=table, host=host, username=username, password=password, override_table=override_table, append=append):
-        return create_datatype_from_sql(name=name, database=database, table=table, no_bool=no_bool, methods=methods)
+    if read_excel_to_sql(path=path, database=database, table=table, host=host, username=username, password=password,
+                         override_table=override_table, append=append):
+        return create_datatype_from_sql(name=name, database=database, password=password, table=table, no_bool=no_bool,
+                                        methods=methods)
     return False
 
 
 if __name__ == "__main__":
-    read_excel_to_sql(path="~/Documents/Jupyter/FalllisteNackt.xlsx", database="data", table="Liste2")
-    patients = create_datatype_from_sql("Patient", "data", "Liste2")
+    read_excel_to_sql(path="~/Documents/Jupyter/FalllisteNackt.xlsx", database="data", table="Liste2",
+                      password="12345678")
+    patients = create_datatype_from_excel(name="Patient", path="~/Documents/Jupyter/FalllisteNackt.xlsx",
+                                          database="data", table="Liste2", password="12345678")
     print(type(patients[0].dob))
-    # print(patients[0].bmi)
+    print(patients[0].bmi)
+    print(len(patients))
